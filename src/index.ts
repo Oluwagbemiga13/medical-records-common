@@ -6,6 +6,17 @@ export type { Logger } from './utils/logger'
 export { TokenService, initTokenService, getTokenService } from './services/TokenService'
 export type { TokenServiceConfig, TokenPayload, TokenRefreshResponse } from './services/TokenService'
 
+// Services - Registration
+export {
+  extractRegistrationToken,
+  validateRegistrationToken,
+  completeRegistration,
+} from './services/registrationService'
+export type {
+  CompleteRegistrationRequest,
+  CompletedRegistrationResponse,
+} from './services/registrationService'
+
 // Services - Facility
 export {
   getFacilities,

@@ -1,25 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { createLogger } from '../utils/logger'
+import { completeRegistration, extractRegistrationToken, validateRegistrationToken } from '../services/registrationService'
 
 const log = createLogger('CompleteRegistration')
-
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8080'
-
-function extractToken(): string | null {
-  const qp = new URLSearchParams(window.location.search).get('token')
-  if (qp) {
-    log.debug('Token extracted from query parameter')
-    return qp
-  }
-  const parts = window.location.pathname.split('/').filter(Boolean)
-  const idx = parts.indexOf('complete-registration')
-  if (idx >= 0 && parts.length > idx + 1) {
-    log.debug('Token extracted from URL path')
-    return parts[idx + 1]
-  }
-  log.warn('No token found in URL')
-  return null
-}
 
 export default function CompleteRegistration() {
   const [token, setToken] = useState<string | null>(null)
@@ -32,7 +15,7 @@ export default function CompleteRegistration() {
   const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
-    const extractedToken = extractToken()
+    const extractedToken = extractRegistrationToken()
     log.info('CompleteRegistration component mounted', { hasToken: !!extractedToken })
     setToken(extractedToken)
 
@@ -44,16 +27,10 @@ export default function CompleteRegistration() {
     // Validate the token
     const validate = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/registration/validate-token?token=${encodeURIComponent(extractedToken)}`)
-        if (res.ok) {
-          const valid = await res.json()
-          setTokenValid(valid === true)
-          if (!valid) {
-            log.warn('Invitation token is invalid or expired')
-          }
-        } else {
-          log.error('Token validation request failed', { status: res.status })
-          setTokenValid(false)
+        const valid = await validateRegistrationToken(extractedToken)
+        setTokenValid(valid)
+        if (!valid) {
+          log.warn('Invitation token is invalid or expired')
         }
       } catch (err) {
         log.error('Token validation network error', err)
@@ -90,32 +67,10 @@ export default function CompleteRegistration() {
     log.info('Complete registration request started')
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/api/registration/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
-      })
-
-      let data: any = null
-      try {
-        data = await res.json()
-      } catch {
-        try {
-          data = await res.text()
-        } catch {
-          data = null
-        }
-      }
-
-      if (!res.ok) {
-        const msg = data && typeof data === 'object' ? data.message || JSON.stringify(data) : data || `Request failed (${res.status})`
-        log.error('Complete registration failed', { status: res.status, body: data })
-        setError(msg)
-        return
-      }
+      const result = await completeRegistration({ token, password })
 
       log.info('Registration completed successfully, redirecting to login')
-      setSuccess('Registration complete! You will be redirected to sign in...')
+      setSuccess(result.message || 'Registration complete! You will be redirected to sign in...')
       setTimeout(() => {
         localStorage.setItem('flash_password_changed', 'Registration complete. Please sign in with your new password.')
         window.history.pushState({}, '', '/')
