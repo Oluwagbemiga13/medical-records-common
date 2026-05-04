@@ -33,10 +33,38 @@ export type {
   UpdateFacilityRequest,
 } from './services/facilityService'
 
+// Services - Patient
+export {
+  getAllPatients,
+  getPatientById,
+  getPatientByHealthCareNumber,
+  createPatient,
+  updatePatient,
+  deletePatient,
+  registerPatient,
+  registerDependant,
+} from './services/patientService'
+export type {
+  Patient,
+  PatientDemographics,
+  EmergencyContact,
+  Address,
+  CreatePatientPayload,
+  UpdatePatientPayload,
+  RegisterPatientPayload,
+  PatientRegistrationResponse,
+  RegisterDependantPayload,
+  DependantRegistrationResponse,
+} from './services/patientService'
+
 // Components
 export { default as ConfirmDialog } from './components/ConfirmDialog'
 export { default as FacilitiesTable } from './components/FacilitiesTable'
 export { default as FacilityDialog } from './components/FacilityDialog'
+export { default as PatientsTable } from './components/PatientsTable'
+export { default as PatientDialog } from './components/PatientDialog'
+export type { PatientFormValues } from './components/PatientDialog'
+export { default as DependantRegistrationDialog } from './components/DependantRegistrationDialog'
 export { default as TokenExpirationWarning } from './components/TokenExpirationWarning'
 export { default as Login } from './components/Login'
 export { default as Menu } from './components/Menu'
